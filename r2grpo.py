@@ -36,18 +36,35 @@ gradient_accumulation_steps = 1
 model_name = args.model_name
 load_in_4bit = '4bit' in model_name
 dtype = torch.bfloat16
-dataset_name = '_select2'
+dataset_name = ''
 
+
+# SYSTEM_PROMPT = """
+#         Respond in the following format:
+#         <think>
+#         Provide step-by-step reasoning to solve the task based on the given instructions and sentence.
+#         </think>
+#         <answer>
+#         Provide the final answer in JSON format as specified in the instruction.
+#         </answer>
+#         """
+
+#for R2GRPO
 SYSTEM_PROMPT = """
-        Respond in the following format:
-        <think>
-        Provide step-by-step reasoning to solve the task based on the given instructions and sentence.
-        </think>
-        <answer>
-        Provide the final answer in JSON format as specified in the instruction.
-        </answer>
-        """
-
+    Respond in the following format:
+    <reasoning>
+    Provide step-by-step reasoning to solve the task based on the given instructions and sentence.
+    </reasoning>
+    <think>
+    Cite the specific sentence part (e.g., phrase, verb, or structure) supporting the relation.
+    Articulate a symbolic pattern you discovered (e.g., "The verb 'achieves' suggests a Method is applied to a Task, implying a relation").
+    Explain how this pattern leads to the predicted relation, referencing the relationship definition.
+    Use concise, logical chains (e.g., "X performs Y → relation Z because of definition").
+    </think>
+    <answer>
+    Provide the final answer in JSON format as specified in the instruction.
+    </answer>"""
+    
 # Load model and tokenizer
 model, tokenizer = FastLanguageModel.from_pretrained(
     model_name=model_name,
