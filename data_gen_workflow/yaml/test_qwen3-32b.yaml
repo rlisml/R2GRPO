@@ -1,0 +1,137 @@
+# ==========================================
+# Global Pipeline Configuration
+# ==========================================
+pipeline:
+  workspace_dir: "./outputs/test/phrase"  # [str] Root directory for all output files
+  run_narray: true      # [true | false] Whether to execute Stage 1: Structured Data Generation
+  run_textgen: true     # [true | false] Whether to execute Stage 2: Text Content Generation
+  # seed_data_path: "./inputs/seed_data/PscER_test_100.xlsx" # [str] Path to the initial seed data
+  seed_data_path: "./inputs/seed_data/5examples.xlsx" # [str] Path to the initial seed data
+
+
+# ==========================================
+# LLM Configuration (Refined V3)
+# ==========================================
+llm:
+  # [str] Execution mode:
+  #   - 'local'       : Hugging Face Transformers (High compatibility)
+  #   - 'local_vllm'  : vLLM Accelerated Inference (High performance)
+  #   - 'api'         : Official OpenAI API (Default: GPT-4o)
+  #   - 'openrouter'  : OpenRouter API (Supports Claude, DeepSeek, Gemini, etc.)
+  mode: "local_vllm" 
+  temperature: 0.7
+  max_new_tokens: 9216
+
+  # --- 1. Local Model Configuration (mode="local" or "local_vllm") ---
+  local_config:
+    model_path: "/seu_share2/home/dishimin/230259983/models/Qwen3-32B"
+    max_model_len: 32768 # 32768 | 33792 | 38912
+    device_map: "gpu"       # Only effective when mode=local
+    vllm_gpu_util: 0.95      # Only effective when mode=local_vllm
+
+  # --- 2. Official OpenAI API Configuration (mode="api") ---
+  api_config:
+    # Default uses GPT-4o
+    model_name: "gpt-4o"
+    api_key: "sk-..."  # Recommended to use OPENAI_API_KEY env var; leave blank here
+    base_url: null     # Leave blank to default to https://api.openai.com/v1
+
+  # --- 3. OpenRouter API Configuration (mode="openrouter") ---
+  openrouter_config:
+    # Common Model ID mappings:
+    # - GPT-4o:      "openai/gpt-4o"
+    # - Claude 3.5:  "anthropic/claude-3.5-sonnet"
+    # - DeepSeek:    "deepseek/deepseek-chat"
+    # - Gemini Pro:  "google/gemini-flash-1.5"
+    model_name: "openai/gpt-4o" 
+    
+    api_key: "sk-or-v1-..."  # Recommended to use OPENROUTER_API_KEY env var
+    base_url: "https://openrouter.ai/api/v1"
+
+
+# ==========================================
+# Stage 1: nArray Configuration (Structured Data Generation)
+# ==========================================
+narray:
+  max_workers: 50
+  # --- Knowledge Base ---
+  path2knowledge: "./inputs/domain_knowledge/pscs"
+  domain_knowledge_path: "./inputs/domain_knowledge/psc_norms.md"
+
+  # --- Basic Controls ---
+  random_seed: 1                # [int] Random seed for reproducibility
+  article_col: "Article"        # [str] Column name identifying "Article/Group" in the table
+  meta_prefix: "_"              # [str] Prefix for metadata columns (tracked but not trained)
+  missing_token: "-"            # [str] Placeholder for missing values in data
+
+  # --- Iteration Strategy ---
+  max_epoch: 2                   # [int] Maximum number of iteration epochs
+  max_total_new_rows: 10         # [int] Maximum total new rows allowed per epoch
+
+  # [list] Numeric Columns: Columns requiring numeric binning modeling
+  numeric_cols:
+    - "Annealing temperature (°C) "
+    - "Annealing time (minutes) "
+    - "PCEstabilized (%)"
+
+  # [dict] Numeric Binning Rules: {Column: Step/Bin Size}
+  numeric_bin_rules:
+    "Annealing temperature (°C) ": 10.0
+    "Annealing time (minutes) ": 5.0
+    "PCEstabilized (%)": 0.5
+
+  
+  # [dict] Target Multi-row Distribution Ratio: {Article row count k: Target ratio}
+  target_multirow_ratio:
+    "1": 0.2
+    "2": 0.2
+    "3": 0.15
+    "4": 0.15
+    "5": 0.1
+    "6": 0.1
+    "7": 0.05
+    "8": 0.05
+
+  # [dict] Target Entity Distribution Constraints
+  target_entity_constraints:
+    head_ratio: 0.6          # [float] Threshold for identifying high-frequency values (Head terms)
+    tail_ratio_dict:       # [dict] Entities to monitor for high/low frequency distribution and their low-freq thresholds
+      "ETL": 0.2
+      "ETL 2": 0.2
+      "Perovskite": 0.2
+      "Perovskite deposition procedure": 0.2
+      "Perovskite deposition method": 0.2
+      "Anti solvent treatment": 0.2
+      "Precursor solution": 0.2
+      "Annealing ambience": 0.1
+      "HTL": 0.2
+      "HTL additive": 0.2
+
+# ==========================================
+# Stage 2: TextGen Configuration (Text Content Generation)
+# ==========================================
+text_gen:
+  max_workers: 50
+# --- Path Configuration ---
+  md_dir: "/seu_share2/home/dishimin/230259983/exSData/data/v1/data/all-md-preprocess-wo-pic-tab"  # [str] Directory for reference paper library
+  based_narray_data: "./outputs/test_text_gen_2examples.xlsx" # [str] Input file if run_narray=false
+  
+  # --- Core Augmentation Parameters ---
+  aug_level: "phrase"             # [str] "phrase" | "scale" | "generate"
+
+  # --- Scale & Generate ---
+  min_section_words: 200          # [int] Minimum words per generated section
+  max_article_words: 3000         # [int] Maximum total word count target for the article
+  generate_ref_article_num: 1     # [int] Only effective for 'Generate': Number of randomly sampled reference papers
+
+
+
+# ==========================================
+# PDF/DOCX file processing for domain knowledge
+# ==========================================
+mineru_config:
+  model_dir: "/seu_share2/home/dishimin/230259983/models/MinerU"
+  backend: "vlm-transformers" 
+  source: "local"
+  # Temporary output directory
+  tmp_dir: "./outputs/mineru_tmp"
