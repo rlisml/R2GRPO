@@ -68,7 +68,11 @@ The "data_gen_workflow" contains code for the automated generation of structured
 - vllm==0.11.2 (for local inference acceleration)
 
 ## Stage 1: N-Array generation
-To run the full workflow (starting with Stage 1): python run_workflow.py --config yaml/test_qwen3-32b.yaml. If you only want to generate n-array data, please set 'run_textgen' to 'false' in the YAML file.
+To run the full workflow (starting with Stage 1): 
+``` bash
+python run_workflow.py --config yaml/test_qwen3-32b.yaml
+```
+If you only want to generate n-array data, please set 'run_textgen' to 'false' in the YAML file.
 
 ## Stage 2: Scientific papers generation
 If you only want to generate scientific papers, please set 'run_narray' to 'false' and 'run_narray' is' true 'in the YAML file. At the same time, you need to specify the path of' ased_narray_data '.
