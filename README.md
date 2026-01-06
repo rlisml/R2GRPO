@@ -57,3 +57,24 @@ Training data should follow this JSON format:
 Our code is based on the [unsloth](https://github.com/unslothai/unsloth) package.
 
 The original dataset can be found in [SciER](https://github.com/edzq/SciER)
+
+
+# Scientific Data Generation Workflow
+The "data_gen_workflow" contains code for the automated generation of structured n-array data and corresponding academic paper using Large Language Models (LLMs).
+
+## Requirements
+- Python 3.10+
+- PyTorch (CUDA 12.x)
+- vllm==0.11.2 (for local inference acceleration)
+
+## Stage 1: N-Array generation
+To run the full workflow (starting with Stage 1): python run_workflow.py --config yaml/test_qwen3-32b.yaml. If you only want to generate n-array data, please set 'run_textgen' to 'false' in the YAML file.
+
+## Stage 2: Scientific papers generation
+If you only want to generate scientific papers, please set 'run_narray' to 'false' and 'run_narray' is' true 'in the YAML file. At the same time, you need to specify the path of' ased_narray_data '.
+
+### Data
+The benchmark data used for data generation workflow comes from:
+Odabaşı Ç, Yıldırım R. Performance analysis of perovskite solar cells in 2013–2018 using machine-learning tools[J]. Nano Energy, 2019, 56: 770-791.
+
+
